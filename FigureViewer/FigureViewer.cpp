@@ -43,7 +43,9 @@ int _stdcall WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 // В основном модуле объявляется только одна глобальная переменная - создаётся объект класса Sight
 // Все дальнейшие действия осуществляются посредством обращения к методам, реализованным в этом классе
-Sight sight(30, RGB(255, 0, 0));
+const int size = 4;
+int j = 0;
+Sight sight[size];
 Sight2 sight2(40,RGB(0,255,0));
 int wSize = 500;
 LRESULT _stdcall WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)		// оконная процедура принимает и обрабатывает все сообщения, отправленные окну
@@ -53,8 +55,10 @@ LRESULT _stdcall WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)		// 
 	case WM_PAINT:						// системное сообщение WM_PAINT генерируется всякий раз, когда требуется отрисовка или перерисовка изображения
 		{
 			HDC dc = GetDC(hWnd);		// функция GetDC возвращает контекст устройства, в котором хранится информация о том, в какое окно производится вывод, каковы размеры рабочей области окна hWnd, в какой точке экрана находится начало координат рабочей области и т.п.
-			sight.Clear(dc,hWnd);
-			sight.Draw(dc);
+			sight[j].Clear(dc, hWnd);
+			for (int i = 0; i < size; i++) {
+				sight[i].Draw(dc);
+			}
 			sight2.Draw(dc);
 			ReleaseDC(hWnd, dc);		// функция ReleaseDC сообщает системе, что связанный с окном hWnd контекст dc больше не нужен
 			return DefWindowProc(hWnd, msg, wParam, lParam);
@@ -63,30 +67,44 @@ LRESULT _stdcall WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)		// 
 		{
 			switch (wParam)
 			{
+			case VK_TAB:
+			{
+				if (j < size-1) {
+					sight[j].changeColor(RGB(0, 0, 0));
+					j++;
+					sight[j].changeColor(RGB(255, 0, 0));
+				}
+				else {
+					sight[j].changeColor(RGB(0, 0, 0));
+					j=0;
+					sight[j].changeColor(RGB(255, 0, 0));
+				}
+				break;
+			}
 			case VK_LEFT:
 				{ 
-					if(sight.inWindow(wSize,-2,0))
-					sight.Move(-2, 0);
+					if(sight[j].inWindow(wSize,-2,0))
+					sight[j].Move(-2, 0);
 				
 					//sight2.Move(-2, 0);
 					break;
 				}
 			case VK_RIGHT:
 				{
-				if (sight.inWindow(wSize, 2, 0))
-					sight.Move(2, 0);
+				if (sight[j].inWindow(wSize, 2, 0))
+					sight[j].Move(2, 0);
 					break;
 				}
 			case VK_UP:
 			{
-				if (sight.inWindow(wSize, 0, -2))
-				sight.Move(0, -2);
+				if (sight[j].inWindow(wSize, 0, -2))
+				sight[j].Move(0, -2);
 				break;
 			}
 			case VK_DOWN:
 			{
-				if (sight.inWindow(wSize, 0, 2))
-				sight.Move(0, 2);
+				if (sight[j].inWindow(wSize, 0, 2))
+				sight[j].Move(0, 2);
 				break;
 			}
 			}
@@ -95,26 +113,26 @@ LRESULT _stdcall WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)		// 
 		}
 	case WM_RBUTTONDOWN:
 		{
-		if (sight.inWindow(wSize, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)))
+		if (sight[j].inWindow(wSize, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)))
 		{
-			sight.MoveTo(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			sight[j].MoveTo(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			InvalidateRect(hWnd, nullptr, false);
 		}
 			return 0;
 		}
 	case WM_LBUTTONDOWN:
 		{
-			if (sight.InnerPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))/*&& sight.inWindow(wSize, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))*/)
-				sight.StartDragging(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			if (sight[j].InnerPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))/*&& sight.inWindow(wSize, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))*/)
+				sight[j].StartDragging(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			else if (sight2.InnerPoint(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))/*&& sight2.inWindow(wSize, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam))*/)
 				sight2.StartDragging(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
 		}
 	case WM_MOUSEMOVE:
 		{
-			if (sight.IsDragging()&&sight.inWindow(wSize, GET_X_LPARAM(lParam)-sight.getX(), GET_Y_LPARAM(lParam)-sight.getY()))
+			if (sight[j].IsDragging()&&sight[j].inWindow(wSize, GET_X_LPARAM(lParam)-sight[j].getX(), GET_Y_LPARAM(lParam)-sight[j].getY()))
 			{
-				sight.Drag(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+				sight[j].Drag(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 				InvalidateRect(hWnd, nullptr, false);
 			}
 			else if (sight2.IsDragging()&& sight2.inWindow(wSize, GET_X_LPARAM(lParam) - sight2.getX(), GET_Y_LPARAM(lParam) - sight2.getY()))
@@ -130,9 +148,9 @@ LRESULT _stdcall WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)		// 
 		P.x = GET_X_LPARAM(lParam);
 		P.y = GET_Y_LPARAM(lParam);
 		ScreenToClient(hWnd, &P);
-		if (sight.InnerPoint(P.x, P.y)&&sight.MkCtrl(GET_KEYSTATE_WPARAM(wParam))&& sight.inWindowNewSize(wSize)) {
+		if (sight[j].InnerPoint(P.x, P.y)&&sight[j].MkCtrl(GET_KEYSTATE_WPARAM(wParam))&& sight[j].inWindowNewSize(wSize)) {
 			int zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-			sight.ChangeSize(zDelta);
+			sight[j].ChangeSize(zDelta);
 			InvalidateRect(hWnd, nullptr, false);
 		}
 		else if (sight2.InnerPoint(P.x, P.y) && sight2.MkCtrl(GET_KEYSTATE_WPARAM(wParam))&& sight2.inWindowNewSize(wSize)) {
@@ -144,7 +162,7 @@ LRESULT _stdcall WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)		// 
 		}
 	case WM_LBUTTONUP:
 		{
-			sight.StopDragging();
+			sight[j].StopDragging();
 			sight2.StopDragging();
 			return 0;
 		}

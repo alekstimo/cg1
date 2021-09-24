@@ -28,6 +28,9 @@ public:
 	}
 	virtual void Draw(HDC dc) = 0;
 	virtual bool InnerPoint(int X, int Y) = 0;
+	void changeColor(COLORREF newcolor) {
+		Color = newcolor;
+	}
 	void MoveTo(int X, int Y)
 	{
 		
